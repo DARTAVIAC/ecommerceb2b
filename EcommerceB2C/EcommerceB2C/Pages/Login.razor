@@ -1,0 +1,182 @@
+﻿@page "/login"
+
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+
+<style>
+    body {
+        background: url('https://ciudademprende.com/wp-content/uploads/2020/09/ecommerce.jpg') no-repeat center center fixed;
+        background-size: cover;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+
+    .login-container {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+    }
+
+    .login-card {
+        background: linear-gradient(145deg, #ffffff, #f0f0f0);
+        padding: 2.5rem;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        min-width: 320px;
+        max-width: 400px;
+        width: 100%;
+        transition: transform 0.3s ease-in-out;
+    }
+
+        .login-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .login-title {
+        font-weight: 700;
+        color: #222;
+        margin-bottom: 2rem;
+        font-size: 1.8rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #444;
+    }
+
+    .form-control {
+        border-radius: 0.75rem;
+        padding: 0.65rem 1rem;
+        font-size: 1rem;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+        border: 1px solid #ccc;
+    }
+
+        .form-control:focus {
+            border-color: #000;
+            box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.15);
+            outline: none;
+        }
+
+    .btn-primary {
+        background-color: #000;
+        border-color: #000;
+        border-radius: 0.75rem;
+        padding: 0.75rem;
+        font-weight: 600;
+        transition: all 0.3s ease-in-out;
+    }
+
+        .btn-primary:hover {
+            background-color: #333;
+            border-color: #333;
+        }
+
+    .text-danger {
+        font-size: 0.95rem;
+    }
+
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+</style>
+
+
+@if (isLoading)
+{
+    <div class="text-center mt-5">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+    </div>
+}
+else if (AuthService.GetUser().IsAuthenticated)
+{
+    <div class="container mt-5 text-center text-light">
+        <h5>Sesión iniciada como <strong>@AuthService.GetUser().Username</strong></h5>
+        <button class="btn btn-danger mt-3" @onclick="Logout">Cerrar Sesión</button>
+    </div>
+}
+else
+{
+    <div class="login-container">
+        <div class="login-card">
+            <h3 class="login-title text-center">🛒 Bienvenido</h3>
+
+            <EditForm Model="loginModel" OnValidSubmit="LoginUser" FormName="loginForm">
+
+
+
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="mb-3">
+                    <label class="form-label">Usuario</label>
+                    <InputText class="form-control" @bind-Value="loginModel.Username" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Contraseña</label>
+                    <InputText class="form-control" @bind-Value="loginModel.Password" type="password" />
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">Iniciar Sesión</button>
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(error))
+            {
+                <div class="text-danger mt-3 text-center">@error</div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private LoginModel loginModel = new();
+    private string error = "";
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await AuthService.InitializeAsync();
+        isLoading = false;
+    }
+
+    private async Task LoginUser()
+    {
+        var success = await AuthService.LoginAsync(loginModel.Username, loginModel.Password);
+        if (success)
+        {
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            error = "Usuario o contraseña incorrectos.";
+        }
+    }
+
+    private void Logout()
+    {
+        AuthService.Logout();
+        Navigation.NavigateTo("/login");
+    }
+
+    public class LoginModel
+    {
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+    }
+}

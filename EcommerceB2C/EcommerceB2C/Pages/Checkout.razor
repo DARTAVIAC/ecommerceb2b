@@ -1,0 +1,109 @@
+@page "/checkout"
+@inject CartService CartService
+@inject NavigationManager Navigation
+
+<div class="container py-5">
+    <h2 class="text-center fw-bold text-dark mb-4">🧾 Finalizar Compra</h2>
+
+    @if (!CartService.Items.Any())
+    {
+        <div class="alert alert-warning text-center shadow-sm">
+            No hay productos en el carrito. <a href="/" class="alert-link">Volver al catálogo</a>
+        </div>
+    }
+    else if (compraFinalizada)
+    {
+        <div class="alert alert-success text-center shadow-sm">
+            ✅ ¡Gracias por tu compra, <strong>@form.Nombre</strong>!<br />
+            Te enviaremos un correo a <strong>@form.Correo</strong> con los detalles.
+        </div>
+    }
+    else
+    {
+        <EditForm Model="@form" OnValidSubmit="@FinalizarCompra">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+
+            <div class="row">
+                <!-- Información del comprador -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title text-dark mb-4">🧍‍♂️ Información del Comprador</h5>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">Nombre completo</label>
+                                <InputText class="form-control" @bind-Value="form.Nombre" placeholder="Ej: Diego Martínez" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">Correo electrónico</label>
+                                <InputText class="form-control" @bind-Value="form.Correo" type="email" placeholder="Ej: correo@ejemplo.com" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark">Dirección de entrega</label>
+                                <InputTextArea class="form-control" @bind-Value="form.Direccion" rows="3" placeholder="Dirección completa de entrega..." />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de compra -->
+                <div class="col-md-6 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-dark mb-4">🛍️ Resumen de la Compra</h5>
+
+                            <ul class="list-group list-group-flush mb-3">
+                                @foreach (var item in CartService.Items)
+                                {
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div class="text-dark">
+                                            @item.Product.Title
+                                            <span class="badge bg-secondary ms-2">x@item.Quantity</span>
+                                        </div>
+                                        <div class="fw-bold text-success">
+                                            ₡@((item.Product.Price * item.Quantity).ToString("N2"))
+                                        </div>
+                                    </li>
+                                }
+                            </ul>
+
+                            <hr />
+
+                            <div class="d-flex justify-content-between align-items-center fs-5 fw-bold mb-2">
+                                <span class="text-dark">Total a pagar:</span>
+                                <span class="text-success">₡@CartService.GetTotal().ToString("N2")</span>
+                            </div>
+
+                            <div class="text-center mt-3">
+                                <button type="submit" class="btn btn-lg btn-success px-5">
+                                    <i class="bi bi-check-circle-fill me-2"></i>Confirmar Compra
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+@code {
+    private CheckoutForm form = new();
+    private bool compraFinalizada = false;
+
+    private void FinalizarCompra()
+    {
+        compraFinalizada = true;
+        CartService.ClearCart();
+    }
+
+    public class CheckoutForm
+    {
+        public string Nombre { get; set; } = "";
+        public string Correo { get; set; } = "";
+        public string Direccion { get; set; } = "";
+    }
+}

@@ -1,0 +1,38 @@
+﻿@inject CartService CartService
+
+@implements IDisposable
+
+<NavLink class="nav-link" href="/">
+    <span class="oi oi-home" aria-hidden="true"></span> Catálogo
+</NavLink>
+
+<NavLink class="nav-link" href="products">
+    <span class="oi oi-list-rich" aria-hidden="true"></span> Productos
+</NavLink>
+
+<NavLink class="nav-link" href="cart">
+    <span class="oi oi-cart" aria-hidden="true"></span>
+    Carrito
+    @if (CartService.Items.Count > 0)
+    {
+        <span class="badge bg-danger ms-1">@CartService.Items.Count</span>
+    }
+</NavLink>
+
+<NavLink class="nav-link" href="/login">Login</NavLink>
+<NavLink class="nav-link" href="/checkout">Checkout</NavLink>
+<NavLink class="nav-link" href="/weather">Clima</NavLink>
+
+<Weather />
+
+@code {
+    protected override void OnInitialized()
+    {
+        CartService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= StateHasChanged;
+    }
+}

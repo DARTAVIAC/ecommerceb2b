@@ -1,0 +1,12 @@
+﻿@page "/"
+@namespace EcommerceB2C.Pages
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_Layout";
+}
+
+<component type="typeof(App)" render-mode="ServerPrerendered" />
+
+@section Scripts {
+    <script src="js/geolocation.js"></script>
+}

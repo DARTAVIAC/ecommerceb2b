@@ -1,0 +1,70 @@
+@page "/cart"
+@inject CartService CartService
+@inject NavigationManager Navigation
+
+<div class="container mt-5 pt-4">
+    <h2 class="mb-4 text-center text-dark fw-bold" style="font-size: 2rem;">
+        🛒 Carrito de Compras
+    </h2>
+
+    @if (!CartService.Items.Any())
+    {
+        <div class="alert alert-secondary text-center fs-5 shadow-sm">
+            Tu carrito está vacío. ¡Agrega productos para continuar con tu compra!
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table align-middle text-center shadow-sm border">
+                <thead style="background-color: #f0f2f5;" class="border-bottom">
+                    <tr class="text-uppercase text-secondary small">
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio Unitario</th>
+                        <th>Total</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody class="fw-light fs-6">
+                    @foreach (var item in CartService.Items)
+                    {
+                        <tr>
+                            <td class="fw-semibold">@item.Product.Title</td>
+                            <td>@item.Quantity</td>
+                            <td>₡@item.Product.Price.ToString("N2")</td>
+                            <td class="text-success fw-bold">₡@((item.Product.Price * item.Quantity).ToString("N2"))</td>
+                            <td>
+                                <button class="btn btn-outline-danger btn-sm rounded-circle"
+                                        title="Eliminar del carrito"
+                                        style="width: 36px; height: 36px;"
+                                        @onclick="() => CartService.RemoveFromCart(item.Product)">
+                                    <i class="bi bi-trash-fill"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="d-flex justify-content-end align-items-center mt-4">
+            <h4 class="me-3 text-secondary">Total:</h4>
+            <h4 class="text-success fw-bold">₡@CartService.GetTotal().ToString("N2")</h4>
+        </div>
+
+        <div class="text-end mt-4">
+            <button class="btn btn-dark px-4 py-2 fs-5 rounded-3 shadow-sm" @onclick="IrACheckout">
+                Proceder al pago
+            </button>
+        </div>
+    }
+</div>
+
+
+@code {
+    private void IrACheckout()
+    {
+        Navigation.NavigateTo("/checkout");
+    }
+}

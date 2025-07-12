@@ -1,0 +1,47 @@
+# Build results
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+.vscode/
+
+# Mac
+.DS_Store
+
+# Logs
+*.log
+
+# Rider
+.idea/
+
+# Packages
+*.nupkg
+packages/
+
+# Test results
+TestResults/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Others
+*.swp
+*.tmp
+*.bak
+*.orig
+*.rej
+
+# Node
+node_modules/
+
+# Environment configs
+.env
+.env.*

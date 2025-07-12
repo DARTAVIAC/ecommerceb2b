@@ -1,0 +1,175 @@
+@page "/"
+@using EcommerceB2C.Data
+@inject ProductService ProductService
+@inject CartService CartService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<div class="text-center mb-4 mt-5 pt-5">
+    <h2 class="fw-bold">🛒 Bienvenido al Catálogo de Productos</h2>
+    <p class="text-muted">Explorá las mejores ofertas y añadí tus favoritos al carrito</p>
+</div>
+
+
+@if (redirecting)
+{
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p>Redirigiendo al login...</p>
+    </div>
+}
+else if (products == null)
+{
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p>Cargando productos...</p>
+    </div>
+}
+else
+{
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-4 mb-2">
+            <input class="form-control shadow-sm" placeholder="🔍 Buscar por nombre..."
+                   @bind="SearchTerm" @bind:event="oninput" />
+        </div>
+        <div class="col-md-4 mb-2">
+            <select class="form-select shadow-sm" @onchange="OnCategoryChanged">
+                <option value="">📁 Todas las categorías</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat">@cat</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="row">
+        @foreach (var product in filteredProducts)
+        {
+            <div class="col-md-3 mb-4">
+                <div class="card h-100 shadow-sm border-0 rounded-4 catalog-card">
+                    <img src="@product.Image" class="card-img-top p-3"
+                         style="object-fit: contain; height: 200px;" />
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title text-dark">@product.Title</h5>
+                        <p class="card-text text-muted small">@product.Description.Substring(0, Math.Min(60, product.Description.Length))...</p>
+                        <p class="card-text fw-bold text-primary">@product.Price.ToString("C")</p>
+                        <p class="card-text mb-1">
+                            <small class="text-warning">⭐ @product.Rating.Rate</small>
+                            <small class="text-muted">(@product.Rating.Count reseñas)</small>
+                        </p>
+                        <p>
+                            <span class="badge bg-success">Disponible</span>
+                        </p>
+                        <div class="mt-auto">
+                            <button class="btn btn-outline-darkgray w-100"
+                                    @onclick="() => CartService.AddToCart(product)">
+                                🛍️ Agregar al carrito
+                            </button>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    .catalog-card:hover {
+        transform: scale(1.02);
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    /* Card general */
+    .catalog-card {
+        border-radius: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease-in-out;
+    }
+
+        .catalog-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        /* Botón personalizado */
+
+
+            .catalog-card .btn:hover {
+                background-color: #333;
+                color: #fff;
+            }
+
+    /* Input y select */
+    input.form-control,
+    select.form-select {
+        border-radius: 1rem;
+        padding: 0.6rem 1rem;
+    }
+
+</style>
+
+@code {
+    private List<Product>? products;
+    private List<Product>? filteredProducts;
+    private List<string> categories = new List<string>();
+    private string searchTerm = "";
+    private string selectedCategory = "";
+    private bool redirecting = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            redirecting = true;
+            Navigation.NavigateTo("/login", true);
+            return;
+        }
+
+        products = await ProductService.GetProductsAsync();
+
+        if (products != null)
+        {
+            categories = products
+                .Select(p => p.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
+
+            filteredProducts = products;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        if (products == null) return;
+
+        filteredProducts = products
+            .Where(p =>
+                (string.IsNullOrWhiteSpace(searchTerm) || p.Title.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)) &&
+                (string.IsNullOrWhiteSpace(selectedCategory) || p.Category == selectedCategory))
+            .ToList();
+    }
+
+    private string SearchTerm
+    {
+        get => searchTerm;
+        set
+        {
+            searchTerm = value;
+            ApplyFilters();
+        }
+    }
+
+    private void OnCategoryChanged(ChangeEventArgs e)
+    {
+        selectedCategory = e.Value?.ToString() ?? "";
+        ApplyFilters();
+    }
+}

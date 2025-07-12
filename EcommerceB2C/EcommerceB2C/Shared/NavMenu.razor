@@ -1,0 +1,81 @@
+﻿@inject CartService CartService
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+@implements IDisposable
+
+<nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold text-success" href="/">Ecommerce B2C</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Menú centrado con flex + gap manual -->
+            <div class="mx-auto d-flex align-items-center menu-links">
+                <NavLink class="nav-link px-3" href="/" Match="NavLinkMatch.All">Catálogo</NavLink>
+                <NavLink class="nav-link px-3" href="/cart">Carrito</NavLink> 
+                <NavLink class="nav-link px-3" href="/weather">Clima</NavLink>
+            </div>
+
+            <!-- Derecha -->
+            <ul class="navbar-nav d-flex align-items-center gap-3">
+                <!-- Ícono de carrito, pero ahora lleva a /checkout -->
+                <li class="nav-item">
+                    <NavLink class="nav-link position-relative d-flex align-items-center" href="/checkout">
+                        <i class="bi bi-cart fs-5 me-1"></i>
+                        @if (CartService.Items.Count > 0)
+                        {
+                            <span class="badge bg-danger text-white position-absolute top-0 start-100 translate-middle">
+                                @CartService.Items.Count
+                            </span>
+                        }
+                        <span class="text-danger fw-bold ms-2">
+                            $@(CartService.GetTotal().ToString("0.00"))
+                        </span>
+                    </NavLink>
+                </li>
+
+                @if (AuthService.IsAuthenticated)
+                {
+                    <li class="nav-item">
+                        <span class="nav-link text-dark">Hola, @AuthService.Username</span>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-outline-danger" @onclick="Logout">Cerrar sesión</button>
+                    </li>
+                }
+                else
+                {
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">
+                            <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
+                        </a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</nav>
+
+
+
+@code {
+    private void Logout()
+    {
+        AuthService.Logout();
+        Navigation.NavigateTo("/login", forceLoad: true);
+    }
+
+    protected override void OnInitialized()
+    {
+        CartService.OnChange += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        CartService.OnChange -= StateHasChanged;
+    }
+}

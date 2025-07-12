@@ -1,0 +1,73 @@
+@page "/weather"
+@using EcommerceB2C.Data
+@inject IJSRuntime JS
+@inject WeatherService WeatherService
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body text-center p-5">
+                    <h3 class="text-dark fw-bold mb-4">
+                        ☀️ Clima Actual
+                    </h3>
+
+                    @if (weather != null)
+                    {
+                        <h4 class="fw-semibold text-black mb-2">@weather.Name</h4>
+
+                        <div class="display-4 fw-bold text-success mb-3">
+                            @weather.Main.Temp.ToString("0.#")°C
+                        </div>
+
+                        <div class="mb-3 text-secondary">
+                            <div><strong>Humedad:</strong> @weather.Main.Humidity%</div>
+                            <div><strong>Presión:</strong> @weather.Main.Pressure hPa</div>
+                        </div>
+
+                        <p class="text-muted small fst-italic">
+                            Última actualización: @DateTime.Now.ToString("HH:mm:ss")
+                        </p>
+                    }
+                    else if (error != null)
+                    {
+                        <div class="alert alert-danger mt-3 rounded-3">
+                            ❌ Error al obtener el clima: <br /> @error
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="d-flex justify-content-center align-items-center flex-column">
+                            <div class="spinner-border text-secondary" role="status"></div>
+                            <p class="mt-3 text-muted">Obteniendo clima actual...</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private WeatherInfo? weather;
+    private string? error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var position = await JS.InvokeAsync<GeolocationResult>("getLocation");
+            weather = await WeatherService.GetWeatherAsync(position.latitude, position.longitude);
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+    }
+
+    public class GeolocationResult
+    {
+        public double latitude { get; set; }
+        public double longitude { get; set; }
+    }
+}
